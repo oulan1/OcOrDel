@@ -1,0 +1,891 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Очень Оренбургские Дела</title>
+    
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+
+    <link rel="icon" href="ССЫЛКА_НА_ИКОНКУ_САЙТА" type="image/x-icon">
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+            -webkit-user-select: none;
+            -webkit-touch-callout: none;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: #0a0a0c;
+            color: #ffffff;
+            padding-bottom: 120px;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1000px; /* Увеличили для ПК, чтобы вместить крупные превью */
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .page {
+            display: none;
+        }
+        .page.active {
+            display: block;
+        }
+
+        .btn-back {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            margin-bottom: 20px;
+            display: inline-block;
+            backdrop-filter: blur(5px);
+        }
+
+        .video-block {
+            width: 100%;
+            aspect-ratio: 16/9;
+            background: #000;
+            border-radius: 12px;
+            overflow: hidden;
+            margin-bottom: 15px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+        }
+        
+        .video-block iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        .media-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding: 0 5px;
+        }
+
+        .media-info h2 {
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        /* Увеличенная сетка сезонов на ПК */
+        .seasons-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-top: 40px;
+        }
+
+        @media (max-width: 768px) {
+            .seasons-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+        }
+
+        .season-card {
+            position: relative;
+            cursor: pointer;
+        }
+
+        .preview-wrapper {
+            width: 100%;
+            aspect-ratio: 16/9;
+            border-radius: 16px; /* Чуть больше закругление для крупных карточек */
+            overflow: hidden;
+            position: relative;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .preview-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .locked-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #000000;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 10px;
+            text-align: center;
+            border-radius: 12px;
+        }
+
+        .countdown {
+            font-size: 20px;
+            font-weight: bold;
+            color: #ff3b30;
+            letter-spacing: 0.5px;
+        }
+
+        .season-label {
+            margin-top: 14px;
+            font-size: 18px;
+            font-weight: 500;
+            padding-left: 5px;
+        }
+
+        .trailer-section {
+            margin-bottom: 35px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .section-subtitle {
+            font-size: 14px;
+            color: #8e8e93;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 15px;
+            padding-left: 5px;
+        }
+
+        .episode-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .episode-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            padding: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+        }
+
+        .episode-card.locked {
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+
+        .episode-left h3 {
+            font-size: 16px;
+            font-weight: 500;
+        }
+
+        .episode-left span {
+            font-size: 12px;
+            color: #8e8e93;
+        }
+
+        .timezone-label {
+            font-size: 10px;
+            color: #555559;
+            margin-left: 3px;
+        }
+
+        .episode-timer {
+            font-size: 13px;
+            font-weight: bold;
+            color: #ff3b30;
+            background: rgba(255, 61, 0, 0.1);
+            padding: 4px 10px;
+            border-radius: 6px;
+            border: 1px solid rgba(255, 61, 0, 0.2);
+        }
+
+        .rating-container {
+            text-align: right;
+        }
+
+        .rating-box {
+            padding: 6px 14px;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 15px;
+            background: transparent;
+            border-width: 2px;
+            border-style: solid;
+            display: inline-block;
+            text-align: center;
+        }
+
+        .rating-hint {
+            font-size: 10px;
+            color: #8e8e93;
+            margin-top: 4px;
+            display: block;
+        }
+
+        /* Блок Telegram-канала */
+        .tg-promo-card {
+            background: linear-gradient(135deg, rgba(42, 171, 238, 0.05) 0%, rgba(255, 255, 255, 0.01) 100%);
+            border: 1px solid rgba(42, 171, 238, 0.15);
+            border-radius: 16px;
+            padding: 20px;
+            margin-top: 25px;
+            text-align: center;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+        }
+
+        .tg-promo-card p {
+            font-size: 15px;
+            color: #e5e5ea;
+            margin-bottom: 15px;
+            line-height: 1.4;
+        }
+
+        .tg-btn {
+            display: inline-block;
+            background: #2aabee;
+            color: #ffffff;
+            text-decoration: none;
+            padding: 10px 24px;
+            border-radius: 25px;
+            font-weight: 600;
+            font-size: 14px;
+            transition: transform 0.2s, background 0.2s;
+            box-shadow: 0 4px 15px rgba(42, 171, 238, 0.3);
+        }
+
+        .tg-btn:active {
+            transform: scale(0.97);
+            background: #229ed9;
+        }
+
+        /* Специфика Статистики и Кнопка QR */
+        .stats-top-wrapper {
+            position: relative;
+            text-align: center;
+            margin-bottom: 30px;
+            padding-top: 10px;
+        }
+
+        .qr-trigger-btn {
+            position: absolute;
+            top: 0;
+            right: 5px;
+            width: 36px;
+            height: 36px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s;
+        }
+
+        .qr-trigger-btn:active {
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .qr-trigger-btn svg {
+            width: 20px;
+            height: 20px;
+            fill: #8e8e93;
+        }
+
+        .stats-header h3 {
+            font-size: 14px;
+            color: #8e8e93;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+        }
+
+        .stat-block-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin: 25px 0 10px 5px;
+            color: #ffffff;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 16px;
+            padding: 15px 20px;
+            position: relative;
+        }
+
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            font-size: 15px;
+        }
+        .stat-item:last-child {
+            border-bottom: none;
+        }
+        .stat-item span {
+            color: #e5e5ea;
+        }
+
+        /* Модальное окно QR-кода */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 100000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .modal-content {
+            background: #1c1c1e;
+            padding: 25px;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            text-align: center;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.8);
+            transform: scale(0.9);
+            transition: transform 0.3s ease;
+        }
+
+        .modal-overlay.active .modal-content {
+            transform: scale(1);
+        }
+
+        #qrcode {
+            background: #ffffff;
+            padding: 12px;
+            border-radius: 12px;
+            display: inline-block;
+            margin-bottom: 15px;
+        }
+
+        .modal-content p {
+            font-size: 14px;
+            color: #8e8e93;
+        }
+
+        /* Меню нижнее */
+        .nav-bar {
+            position: fixed;
+            bottom: 25px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(255, 255, 255, 0.06);
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 40px;
+            padding: 8px 12px;
+            display: flex;
+            gap: 8px;
+            z-index: 9999;
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
+        }
+
+        .nav-item {
+            padding: 10px 24px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            color: rgba(255, 255, 255, 0.6);
+            transition: all 0.3s ease;
+        }
+
+        .nav-item.active {
+            background: rgba(255, 255, 255, 0.15);
+            color: #ffffff;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        
+        <div id="page-main" class="page active">
+            <div class="seasons-grid">
+                <div class="season-card" onclick="openSeason(1)">
+                    <div class="preview-wrapper">
+                        <img id="prw1-img" class="preview-img" src="" alt="">
+                    </div>
+                    <div class="season-label">1 сезон</div>
+                </div>
+
+                <div class="season-card" id="season2-card" onclick="openSeason(2)">
+                    <div class="preview-wrapper">
+                        <img id="prw2-img" class="preview-img" src="" alt="" style="display:none;">
+                        <div class="locked-overlay" id="s2-overlay">
+                            <div class="countdown" id="s2-countdown">00д 00:00:00</div>
+                        </div>
+                    </div>
+                    <div id="s2-label" class="season-label" style="display:none;">2 сезон</div>
+                </div>
+            </div>
+        </div>
+
+        <div id="page-season" class="page">
+            <div class="btn-back" onclick="navigate('main')">← Назад</div>
+            <h2 id="season-page-title" style="margin-bottom: 25px;"></h2>
+            
+            <div class="trailer-section" id="season-trailer-block">
+                <div class="section-subtitle">Трейлер сезона</div>
+                <div class="episode-card" id="trailer-clickable-card">
+                    <div class="episode-left">
+                        <h3>Трейлер</h3>
+                        <span id="trailer-card-desc">...</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section-subtitle">Список серий</div>
+            <div class="episode-list" id="episodes-container"></div>
+        </div>
+
+        <div id="page-player" class="page">
+            <div class="btn-back" id="player-back-btn">← Назад</div>
+            <div class="video-block">
+                <iframe id="episode-player" src="" allowfullscreen></iframe>
+            </div>
+            <div class="media-info">
+                <div>
+                    <h2 id="player-episode-title"></h2>
+                    <p id="player-episode-desc" style="display:none; color:#8e8e93; font-size:14px; margin-top:4px;"></p>
+                </div>
+                <div class="rating-container" id="player-rating-container">
+                    <div class="rating-box" id="player-episode-rating">0.0</div>
+                    <span class="rating-hint" id="player-rating-hint">идет оценка от зрителей</span>
+                </div>
+            </div>
+
+            <div class="tg-promo-card">
+                <p>Хочешь обсудить и оценить серию? Будем рады в нашем телеграм канале!</p>
+                <a href="https://t.me/OcOrDel" target="_blank" class="tg-btn">Войти в канал</a>
+            </div>
+        </div>
+
+        <div id="page-stats" class="page">
+            <div class="stats-top-wrapper">
+                <div class="stats-header">
+                    <h3>Оценка сериала</h3>
+                    <div class="rating-box" id="total-average-rating" style="font-size: 24px; padding: 10px 25px;">0.0</div>
+                    <span class="rating-hint" id="total-rating-hint" style="margin-top:7px; font-size:12px; display:none;">идёт оценка от зрителей</span>
+                </div>
+                <div class="qr-trigger-btn" onclick="openQrModal()">
+                    <svg viewBox="0 0 24 24"><path d="M3 4h5V3H3v5h1V4zm18 0h-5v1h5v4h1V3h-1zM3 21h5v-1H3v-4H2v5h1zm18 0h-5v-1h5v-4h1v5h-1zM7 7h4v4H7V7zm1 1v2h2V8H8zm5-1h4v4h-4V7zm1 1v2h2V8h-2zM7 13h4v4H7v-4zm1 1v2h2v-2H8zm8-1h1v1h-1v-1zm1 1h1v1h-1v-1zm-1 1h1v1h-1v-1zm-2 1h1v1h-1v-1zm1-3h1v1h-1v-1zm1 1h1v1h-1v-1zm-2 1h1v1h-1v-1zm-1-2h1v1h-1v-1z"/></svg>
+                </div>
+            </div>
+
+            <div class="stat-block-title">1 Сезон</div>
+            <div class="stat-card">
+                <div class="stat-item">
+                    <span>Оценка 1 сезона:</span>
+                    <div>
+                        <strong id="s1-rating-stat" class="rating-box" style="font-size:14px; padding:3px 10px;">0.0</strong>
+                        <span class="rating-hint" id="s1-rating-hint" style="font-size:9px; display:none;">идёт оценка</span>
+                    </div>
+                </div>
+                <div id="s1-views-list"></div>
+            </div>
+
+            <div class="stat-block-title" id="s2-stats-title" style="display:none;">2 Сезон</div>
+            <div class="stat-card" id="s2-stats-card" style="margin-top: 10px;">
+                <div id="s2-stats-content" style="display:none;">
+                    <div class="stat-item">
+                        <span>Оценка 2 сезона:</span>
+                        <div>
+                            <strong id="s2-rating-stat" class="rating-box" style="font-size:14px; padding:3px 10px;">0.0</strong>
+                            <span class="rating-hint" id="s2-rating-hint" style="font-size:9px; display:none;">идёт оценка</span>
+                        </div>
+                    </div>
+                    <div id="s2-views-list"></div>
+                </div>
+
+                <div class="locked-overlay" id="s2-stats-overlay" style="border-radius: 16px;">
+                    <div class="countdown" id="s2-stats-countdown">00д 00:00:00</div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="modal-overlay" id="qr-modal" onclick="closeQrModal()">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <div id="qrcode"></div>
+            <p>Сканируй для перехода на сайт</p>
+        </div>
+    </div>
+
+    <div class="nav-bar">
+        <div class="nav-item active" id="nav-main" onclick="navigate('main')">Главная</div>
+        <div class="nav-item" id="nav-stats" onclick="navigate('stats')">Статистика</div>
+    </div>
+
+    <script>
+        // ================= БЛОК НАСТРОЕК СЕРИАЛА =================
+        const prw1 = "ССЫЛКА_НА_ПРЕВЬЮ_1_СЕЗОНА";
+        const prw2 = "ССЫЛКА_НА_ПРЕВЬЮ_2_СЕЗОНА";
+
+        const tr1 = "https://drive.google.com/file/d/1qHylBcqKijAjGx2cw6nQLvZSYpTj0AZq/preview";
+        const tr2 = "ССЫЛКА_НА_ТРЕЙЛЕР_2_СЕЗОНА";
+
+        const s1e0 = "https://drive.google.com/file/d/1ubZcFffHgTvTUKsFJBSLpjAFwwvp9gg-/preview";
+        const s1e1 = "https://drive.google.com/file/d/1c-mxrxQgol782wbCEEgzEZrVIetkv5y6/preview";
+        const s1e2 = "https://drive.google.com/file/d/1ZqFdAs6Rd2R9tlPq-RaKwzv_OWER6djb/preview";
+        const s1e3 = "ССЫЛКА_НА_СЕРИЮ_3";
+        const s1e4 = "ССЫЛКА_НА_СЕРИЮ_4";
+        const s1e5 = "ССЫЛКА_НА_СЕРИЮ_5";
+        const s1e6 = "ССЫЛКА_НА_СЕРИЮ_6";
+
+        // Вместо числовой оценки можно ставить "?", чтобы включить статус N/A
+        const rew_s1e0 = "7.5";
+        const rew_s1e1 = "8.2";
+        const rew_s1e2 = "6.4";
+        const rew_s1e3 = "?"; 
+        const rew_s1e4 = "?";
+        const rew_s1e5 = "10.0";
+        const rew_s1e6 = "1.0";
+
+        const s2e1 = "ССЫЛКА_НА_2_СЕЗОН_СЕРИЯ_1";
+        const s2e2 = "ССЫЛКА_НА_2_СЕЗОН_СЕРИЯ_2";
+        const s2e3 = "ССЫЛКА_НА_2_СЕЗОН_СЕРИЯ_3";
+        const s2e4 = "ССЫЛКА_НА_2_СЕЗОН_СЕРИЯ_4";
+
+        const rew_s2e1 = "?";
+        const rew_s2e2 = "?";
+        const rew_s2e3 = "?";
+        const rew_s2e4 = "?";
+
+        const mockViewsData = {
+            1: { 0: "1,240", 1: "980", 2: "850", 3: "0", 4: "0", 5: "0", 6: "0" },
+            2: { 1: "0", 2: "0", 3: "0", 4: "0" }
+        };
+
+        const seriesData = {
+            1: {
+                title: "1 сезон",
+                trailerUrl: tr1,
+                trailerDesc: "Трейлер к 1 сезону сериала Очень Оренбургские Дела.",
+                episodes: [
+                    { id: 0, num: "0 серия", name: "Пилот.", url: s1e0, rating: rew_s1e0, release: "2026-07-01T18:00:00+03:00" },
+                    { id: 1, num: "1 серия", name: "Введение.", url: s1e1, rating: rew_s1e1, release: "2026-07-06T18:00:00+03:00" },
+                    { id: 2, num: "2 серия", name: "Команда с общей целью.", url: s1e2, rating: rew_s1e2, release: "2026-07-13T18:00:00+03:00" },
+                    { id: 3, num: "3 серия", name: "В новый путь.", url: s1e3, rating: rew_s1e3, release: "2026-07-20T18:00:00+03:00" },
+                    { id: 4, num: "4 серия", name: "Мы наполовину вместе.", url: s1e4, rating: rew_s1e4, release: "2026-07-27T18:00:00+03:00" },
+                    { id: 5, num: "5 серия", name: "Выход есть!", url: s1e5, rating: rew_s1e5, release: "2026-08-03T18:00:00+03:00" },
+                    { id: 6, num: "6 серия", name: "Мы, дом?.", url: s1e6, rating: rew_s1e6, release: "2026-08-10T18:00:00+03:00" }
+                ]
+            },
+            2: {
+                title: "2 сезон",
+                trailerUrl: tr2,
+                trailerDesc: "Трейлер к 2 сезону сериала Очень Оренбургские Дела.",
+                episodes: [
+                    { id: 1, num: "1 серия", name: "Новые стены.", url: s2e1, rating: rew_s2e1, release: "2026-08-17T18:00:00+03:00" },
+                    { id: 2, num: "2 серия", name: "Вперёд в прошлое.", url: s2e2, rating: rew_s2e2, release: "2026-08-24T18:00:00+03:00" },
+                    { id: 3, num: "3 серия", name: "Мясник в мясорубке.", url: s2e3, rating: rew_s2e3, release: "2026-08-31T18:00:00+03:00" },
+                    { id: 4, num: "4 серия", name: "Финал.", url: s2e4, rating: rew_s2e4, release: "2026-09-07T18:00:00+03:00" }
+                ]
+            }
+        };
+
+        const season2ReleaseDate = new Date("2026-08-10T18:00:00+03:00");
+        let currentSeasonOpen = 1;
+        let qrGenerated = false;
+
+        document.getElementById('prw1-img').src = prw1;
+        document.getElementById('prw2-img').src = prw2;
+
+        // ================= ЛОГИКА ОЦЕНОК И ЦВЕТОВ =================
+        function getRatingColor(ratingStr) {
+            if (ratingStr === "?") return '#8e8e93'; // Нейтральный серый цвет для N/A
+            const rating = parseFloat(ratingStr);
+            if (isNaN(rating)) return '#ffffff';
+            const r = Math.round(255 - ((rating - 1) * (255 - 175) / 9));
+            const g = Math.round(59 + ((rating - 1) * (82 - 59) / 9));
+            const b = Math.round(48 + ((rating - 1) * (222 - 48) / 9));
+            return `rgb(${r}, ${g}, ${b})`;
+        }
+
+        function applyBoxStyle(element, ratingStr) {
+            const color = getRatingColor(ratingStr);
+            element.style.color = color;
+            element.style.borderColor = color;
+        }
+
+        // ================= ТАЙМЕРЫ (ГЛАВНАЯ И СЕРИИ) =================
+        function formatTimeDiff(diffMs) {
+            const days = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((diffMs % (1000 * 60)) / 1000);
+            return `${String(days).padStart(2, '0')}д ${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+        }
+
+        function updateTimers() {
+            const now = new Date();
+            
+            // 1. Таймер 2 Сезона на главной
+            const s2Diff = season2ReleaseDate - now;
+            if (s2Diff > 0) {
+                const timerText = formatTimeDiff(s2Diff);
+                if(document.getElementById('s2-countdown')) document.getElementById('s2-countdown').innerText = timerText;
+                if(document.getElementById('s2-stats-countdown')) document.getElementById('s2-stats-countdown').innerText = timerText;
+            } else {
+                const overlay = document.getElementById('s2-overlay');
+                if (overlay) {
+                    overlay.remove();
+                    document.getElementById('prw2-img').style.display = 'block';
+                    document.getElementById('s2-label').style.display = 'block';
+                    document.getElementById('season2-card').style.cursor = 'pointer';
+                }
+                const statsOverlay = document.getElementById('s2-stats-overlay');
+                if (statsOverlay) {
+                    statsOverlay.remove();
+                    document.getElementById('s2-stats-title').style.display = 'block';
+                    document.getElementById('s2-stats-content').style.display = 'block';
+                }
+            }
+
+            // 2. Таймеры для каждой закрытой серии на странице сезона
+            seriesData[currentSeasonOpen].episodes.forEach(ep => {
+                const epRelease = new Date(ep.release);
+                const diff = epRelease - now;
+                const timerBadge = document.getElementById(`ep-timer-${ep.id}`);
+                
+                if (diff > 0) {
+                    if (timerBadge) timerBadge.innerText = formatTimeDiff(diff);
+                } else if (timerBadge) {
+                    // Если серия только что вышла, обновляем весь список серий
+                    openSeason(currentSeasonOpen);
+                }
+            });
+        }
+
+        setInterval(updateTimers, 1000);
+
+        // ================= НАВИГАЦИЯ =================
+        function navigate(pageId) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            document.getElementById('episode-player').src = "";
+
+            if (pageId === 'main') {
+                document.getElementById('page-main').classList.add('active');
+                document.getElementById('nav-main').classList.add('active');
+            } else if (pageId === 'stats') {
+                document.getElementById('page-stats').classList.add('active');
+                document.getElementById('nav-stats').classList.add('active');
+                calculateStats();
+            }
+        }
+
+        function openSeason(seasonNum) {
+            if (seasonNum === 2 && new Date() < season2ReleaseDate) return;
+
+            currentSeasonOpen = seasonNum;
+            document.getElementById('page-main').classList.remove('active');
+            
+            const seasonPage = document.getElementById('page-season');
+            seasonPage.classList.add('active');
+            
+            document.getElementById('season-page-title').innerText = seriesData[seasonNum].title;
+            
+            document.getElementById('trailer-clickable-card').onclick = () => {
+                openVideo(seriesData[seasonNum].title + " — Трейлер", seriesData[seasonNum].trailerUrl, null, true, seriesData[seasonNum].trailerDesc);
+            };
+
+            const container = document.getElementById('episodes-container');
+            container.innerHTML = "";
+            const now = new Date();
+
+            seriesData[seasonNum].episodes.forEach(ep => {
+                const epRelease = new Date(ep.release);
+                const isLocked = now < epRelease;
+
+                const card = document.createElement('div');
+                card.className = `episode-card ${isLocked ? 'locked' : ''}`;
+                
+                const options = { day: 'numeric', month: 'long' };
+                const formattedDate = epRelease.toLocaleDateString('ru-RU', options);
+
+                if (isLocked) {
+                    card.innerHTML = `
+                        <div class="episode-left">
+                            <h3>${ep.num} ${ep.name}</h3>
+                            <span>Доступно с ${formattedDate} в 18:00<span class="timezone-label">по мск</span></span>
+                        </div>
+                        <div class="episode-timer" id="ep-timer-${ep.id}">00д 00:00:00</div>
+                    `;
+                } else {
+                    card.innerHTML = `
+                        <div class="episode-left">
+                            <h3>${ep.num} ${ep.name}</h3>
+                            <span>Доступно для просмотра</span>
+                        </div>
+                        <div class="rating-container">
+                            <div class="rating-box" id="card-rate-${seasonNum}-${ep.id}">${ep.rating}</div>
+                            ${ep.rating === "?" ? `<span class="rating-hint">идёт оценка</span>` : ''}
+                        </div>
+                    `;
+                    card.onclick = () => openVideo(`${ep.num} ${ep.name}`, ep.url, ep.rating, false);
+                    
+                    setTimeout(() => {
+                        const el = document.getElementById(`card-rate-${seasonNum}-${ep.id}`);
+                        if(el) applyBoxStyle(el, ep.rating);
+                    }, 0);
+                }
+                container.appendChild(card);
+            });
+            updateTimers();
+        }
+
+        function openVideo(title, url, rating, isTrailer = false, desc = "") {
+            document.getElementById('page-season').classList.remove('active');
+            document.getElementById('page-player').classList.add('active');
+
+            document.getElementById('episode-player').src = url;
+            document.getElementById('player-episode-title').innerText = title;
+            
+            const ratingBox = document.getElementById('player-episode-rating');
+            const ratingHint = document.getElementById('player-rating-hint');
+            const descEl = document.getElementById('player-episode-desc');
+
+            if (isTrailer) {
+                document.getElementById('player-rating-container').style.display = 'none';
+                descEl.innerText = desc;
+                descEl.style.display = 'block';
+            } else {
+                descEl.style.display = 'none';
+                document.getElementById('player-rating-container').style.display = 'block';
+                ratingBox.innerText = rating;
+                applyBoxStyle(ratingBox, rating);
+                ratingHint.style.display = (rating === "?") ? 'block' : 'none';
+            }
+
+            document.getElementById('player-back-btn').onclick = () => {
+                document.getElementById('page-player').classList.remove('active');
+                openSeason(currentSeasonOpen);
+            };
+        }
+
+        // ================= РАСЧЕТ СТАТИСТИКИ =================
+        function calculateStats() {
+            const now = new Date();
+            let totalRating = 0, s1Rating = 0, s2Rating = 0;
+            let totalCount = 0, s1Count = 0, s2Count = 0;
+            let totalIsNa = true, s1IsNa = true, s2IsNa = true;
+
+            seriesData[1].episodes.forEach(ep => {
+                if (now >= new Date(ep.release)) {
+                    if (ep.rating !== "?") {
+                        const r = parseFloat(ep.rating);
+                        s1Rating += r; s1Count++;
+                        totalRating += r; totalCount++;
+                        s1IsNa = false; totalIsNa = false;
+                    }
+                }
+            });
+
+            seriesData[2].episodes.forEach(ep => {
+                if (now >= new Date(ep.release)) {
+                    if (ep.rating !== "?") {
+                        const r = parseFloat(ep.rating);
+                        s2Rating += r; s2Count++;
+                        totalRating += r; totalCount++;
+                        s2IsNa = false; totalIsNa = false;
+                    }
+                }
+            });
+
+            // Заполнение общих и сезонных рамок оценок
+            const tBox = document.getElementById('total-average-rating');
+            tBox.innerText = totalIsNa ? "?" : (totalRating / totalCount).toFixed(1);
+            applyBoxStyle(tBox, tBox.innerText);
+            document.getElementById('total-rating-hint').style.display = totalIsNa ? 'block' : 'none';
+
+            const s1Box = document.getElementById('s1-rating-stat');
+            s1Box.innerText = s1IsNa ? "?" : (s1Rating / s1Count).toFixed(1);
+            applyBoxStyle(s1Box, s1Box.innerText);
+            document.getElementById('s1-rating-hint').style.display = s1IsNa ? 'block' : 'none';
+
+            const s2Box = document.getElementById('s2-rating-stat');
+            s2Box.innerText = s2IsNa ? "?" : (s2Rating / s2Count).toFixed(1);
+            applyBoxStyle(s2Box, s2Box.innerText);
+            document.getElementById('s2-rating-hint').style.display = s2IsNa ? 'block' : 'none';
+
+            // Рендер таблиц просмотров
+            const s1ViewsList = document.getElementById('s1-views-list');
+            s1ViewsList.innerHTML = "";
+            seriesData[1].episodes.forEach(ep => {
+                const item = document.createElement('div');
+                item.className = "stat-item";
+                item.innerHTML = `<span>Просмотры: ${ep.num} 1 сезона:</span><strong>${mockViewsData[1][ep.id]}</strong>`;
+                s1ViewsList.appendChild(item);
+            });
+
+            const s2ViewsList = document.getElementById('s2-views-list');
+            s2ViewsList.innerHTML = "";
+            seriesData[2].episodes.forEach(ep => {
+                const item = document.createElement('div');
+                item.className = "stat-item";
+                item.innerHTML = `<span>Просмотры: ${ep.num} 2 сезона:</span><strong>${mockViewsData[2][ep.id]}</strong>`;
+                s2ViewsList.appendChild(item);
+            });
+            updateTimers();
+        }
+
+        // ================= УПРАВЛЕНИЕ ОКНОМ QR-КОДА =================
+        function openQrModal() {
+            document.getElementById('qr-modal').classList.add('active');
+            if (!qrGenerated) {
+                new QRCode(document.getElementById("qrcode"), {
+                    text: window.location.href, // Берет текущую ссылку на запущенный сайт
+                    width: 180,
+                    height: 180,
+                    colorDark : "#000000",
+                    colorLight : "#ffffff",
+                    correctLevel : QRCode.CorrectLevel.H
+                });
+                qrGenerated = true;
+            }
+        }
+
+        function closeQrModal() {
+            document.getElementById('qr-modal').classList.remove('active');
+        }
+    </script>
+</body>
+</html>
